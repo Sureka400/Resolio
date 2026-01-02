@@ -3,7 +3,7 @@ const http = require('http');
 const options = {
   hostname: 'localhost',
   port: 3001,
-  path: '/api/chat/chat',
+  path: '/api/chat',
   method: 'POST',
   headers: { 'Content-Type': 'application/json' }
 };

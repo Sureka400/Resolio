@@ -2,7 +2,7 @@ const axios = require('axios');
 require('dotenv').config();
 
 async function testHuggingFace() {
-  const apiKey = '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'; // From .env
+  const apiKey = process.env.HUGGINGFACE_API_KEY; // Use from .env
   const model = 'Qwen/Qwen2.5-7B-Instruct';
   const prompt = 'Explain what a black hole is in one sentence.';
 

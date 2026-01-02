@@ -4,8 +4,8 @@ async function testChatEndpoint() {
   console.log('Testing /api/chat endpoint...');
   
   try {
-    const response = await axios.post('http://localhost:3001/api/chat/chat', {
-      message: 'Explain photosynthesis in simple terms.',
+    const response = await axios.post('http://localhost:3001/api/chat', {
+      message: 'What is the capital of France and what is its population?',
       role: 'student'
     });
 

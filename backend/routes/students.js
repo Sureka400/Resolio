@@ -226,6 +226,31 @@ router.get('/grades', [authenticate, requireStudent], async (req, res) => {
   }
 });
 
+// Get student profile
+router.get('/profile', [authenticate, requireStudent], async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id).select('-password');
+    
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    res.json({
+      id: user._id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      profile: user.profile,
+      academicInfo: user.academicInfo,
+      status: user.status,
+      createdAt: user.createdAt
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 // Update student profile
 router.put('/profile', [authenticate, requireStudent], async (req, res) => {
   try {

@@ -2,7 +2,7 @@ const axios = require('axios');
 
 async function testChat() {
   try {
-    const response = await axios.post('http://localhost:3001/api/chat/chat', {
+    const response = await axios.post('http://localhost:3001/api/chat', {
       message: "Hello, can you help me with a study plan?",
       role: "student"
     });

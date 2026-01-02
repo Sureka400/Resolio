@@ -1,5 +1,5 @@
 // API utility functions
-const API_BASE_URL = 'http://localhost:3001/api';
+const API_BASE_URL = '/api';
 
 // Auth token management
 let authToken: string | null = null;
@@ -410,7 +410,7 @@ export interface ChatResponse {
 export const chatAPI = {
   sendMessage: async (message: string, role: 'student' | 'teacher'): Promise<ChatResponse> => {
     const token = getAuthToken();
-    const response = await fetch(`${API_BASE_URL}/chat/chat`, {
+    const response = await fetch(`${API_BASE_URL}/chat`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
