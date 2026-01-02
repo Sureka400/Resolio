@@ -47,10 +47,10 @@ export function ChatComponent({ title, placeholder, role }: ChatComponentProps) 
       try {
         const healthCheck = await fetch('/api/health').catch(() => null);
         if (!healthCheck || !healthCheck.ok) {
-          throw new Error('Backend server is unreachable via proxy. Please ensure backend is running on port 5000.');
+          throw new Error('Backend server is unreachable via proxy. Please ensure backend is running on port 3001.');
         }
       } catch (e: any) {
-        throw new Error('Backend server is unreachable via proxy. Please ensure backend is running on port 5000.');
+        throw new Error('Backend server is unreachable via proxy. Please ensure backend is running on port 3001.');
       }
 
       const response = await chatAPI.sendMessage(inputMessage, role);

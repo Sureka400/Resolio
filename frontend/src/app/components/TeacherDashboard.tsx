@@ -1144,6 +1144,10 @@ export function TeacherDashboard({ onLogout, onManageClass }: TeacherDashboardPr
                   </div>
                 </ChartCard>
               </div>
+
+              <div className="mt-8">
+                <AiInsights role="teacher" data={{ courses, assignments, dashboardData }} />
+              </div>
             </motion.div>
           )}
 

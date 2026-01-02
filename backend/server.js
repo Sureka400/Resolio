@@ -77,6 +77,7 @@ try {
   app.use('/api/behavior', require('./routes/behavior'));
   app.use('/api/profile', require('./routes/profile'));
   app.use('/api/ai', require('./routes/ai'));
+  app.use('/api/aiInsights', require('./routes/aiInsights'));
 
 // Health check
 app.get('/api/health', (req, res) => {

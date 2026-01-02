@@ -3,6 +3,7 @@ import { motion } from 'motion/react';
 import { Brain, Sparkles, TrendingUp, BookOpen, Lightbulb } from 'lucide-react';
 import { GlassCard } from './GlassCard';
 import { ChartCard } from './ChartCard';
+import { getAuthToken } from '../api';
 
 interface AiInsightsProps {
   role: 'student' | 'teacher';
@@ -16,8 +17,8 @@ export function AiInsights({ role, data }: AiInsightsProps) {
   const generateInsight = async (type: string) => {
     setLoading(true);
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5000/api/ai-insights/generate', {
+      const token = getAuthToken();
+      const response = await fetch('/api/ai/generate', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

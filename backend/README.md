@@ -50,12 +50,12 @@ npm run dev
 npm start
 ```
 
-The server will start on `http://localhost:5000`
+The server will start on `http://localhost:3001`
 
 ### 5. Test the API
 Open your browser and visit:
-- **Health Check**: http://localhost:5000/api/health
-- **API Test**: http://localhost:5000/api/test
+- **Health Check**: http://localhost:3001/api/health
+- **API Test**: http://localhost:3001/api/test
 
 ## 📋 API Endpoints
 
@@ -100,7 +100,7 @@ Open your browser and visit:
 ### Environment Variables (.env)
 ```env
 NODE_ENV=development
-PORT=5000
+PORT=3001
 MONGODB_URI=mongodb://localhost:27017/resolio
 JWT_SECRET=your-super-secret-jwt-key-change-this-in-production
 ```
@@ -115,22 +115,22 @@ JWT_SECRET=your-super-secret-jwt-key-change-this-in-production
 ### Using cURL
 ```bash
 # Test health endpoint
-curl http://localhost:5000/api/health
+curl http://localhost:3001/api/health
 
 # Register a new user
-curl -X POST http://localhost:5000/api/auth/register \
+curl -X POST http://localhost:3001/api/auth/register \
   -H "Content-Type: application/json" \
   -d '{"name":"John Doe","email":"john@example.com","password":"password123","role":"student"}'
 
 # Login
-curl -X POST http://localhost:5000/api/auth/login \
+curl -X POST http://localhost:3001/api/auth/login \
   -H "Content-Type: application/json" \
   -d '{"email":"john@example.com","password":"password123"}'
 ```
 
 ### Using Postman
 1. Import the API endpoints
-2. Set base URL to `http://localhost:5000/api`
+2. Set base URL to `http://localhost:3001/api`
 3. Test authentication and student endpoints
 
 ## 🚀 Deployment
@@ -152,7 +152,7 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm install
 COPY . .
-EXPOSE 5000
+EXPOSE 3001
 CMD ["npm", "start"]
 ```
 
@@ -165,8 +165,8 @@ CMD ["npm", "start"]
 
 ### Port Already in Use
 ```bash
-# Find process using port 5000
-netstat -ano | findstr :5000
+# Find process using port 3001
+netstat -ano | findstr :3001
 
 # Kill the process (replace PID)
 taskkill /PID <PID> /F

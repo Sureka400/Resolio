@@ -22,13 +22,15 @@ import {
   AlertCircle,
   Eye,
   BarChart3,
-  FolderKanban
+  FolderKanban,
+  Sparkles
 } from 'lucide-react';
 import { GlassCard } from './GlassCard';
 import { TabNavigation } from './TabNavigation';
 import { ChartCard } from './ChartCard';
 import { ChatComponent } from './ChatComponent';
 import { AiInsights } from './AiInsights';
+import { AiSchedule } from './AiSchedule';
 import { LineChart, Line, AreaChart, Area, BarChart, Bar, RadarChart, PolarGrid, PolarAngleAxis, Radar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { studentAPI, courseAPI } from '../api';
 
@@ -149,6 +151,7 @@ export function StudentDashboard({ onLogout, onEnterClassroom, onGoToClasses }: 
     { id: 'insights', label: 'AI Insights', icon: BarChart3 },
     { id: 'projects', label: 'Projects', icon: FolderKanban },
     { id: 'progress', label: 'Progress & Well-Being', icon: TrendingUp },
+    { id: 'ai-schedule', label: 'AI Schedule', icon: Sparkles },
     { id: 'schedule', label: 'Schedule', icon: Calendar },
     { id: 'profile', label: 'Profile', icon: User },
   ];
@@ -164,12 +167,15 @@ export function StudentDashboard({ onLogout, onEnterClassroom, onGoToClasses }: 
     { day: 'Sun', hours: 3.2 },
   ];
 
-  const assignmentProgressData = [
-    { subject: 'Math', completed: 85 },
-    { subject: 'Physics', completed: 72 },
-    { subject: 'CS', completed: 95 },
-    { subject: 'English', completed: 68 },
-  ];
+  const assignmentProgressData = courses.map(course => {
+    const courseAssignments = assignments.filter(a => a.course?._id === course._id || a.course === course._id);
+    const completed = courseAssignments.filter(a => a.submission).length;
+    const total = courseAssignments.length;
+    return {
+      subject: course.subject || course.title,
+      completed: total > 0 ? Math.round((completed / total) * 100) : 0
+    };
+  });
 
   const skillsData = [
     { skill: 'Problem Solving', value: 85 },
@@ -331,21 +337,34 @@ export function StudentDashboard({ onLogout, onEnterClassroom, onGoToClasses }: 
               </div>
 
               {/* Today's Tasks */}
-              <ChartCard title="Today's Tasks" description="Your schedule for today">
+              <ChartCard title="Today's Tasks" description="Your upcoming classes and deadlines">
                 <div className="space-y-3">
-                  {[
-                    { task: 'Math Assignment Due', time: '2:00 PM', status: 'upcoming' },
-                    { task: 'Physics Lab Report', time: '4:00 PM', status: 'in-progress' },
-                    { task: 'Computer Science Quiz', time: '6:00 PM', status: 'upcoming' },
-                  ].map((item, idx) => (
-                    <div key={idx} className="flex items-center justify-between p-4 bg-[#1a1a1a] rounded-xl">
-                      <div className="flex items-center gap-3">
-                        <div className={`w-2 h-2 rounded-full ${item.status === 'in-progress' ? 'bg-[#FFD600] animate-pulse' : 'bg-[#a8a6a1]'}`} />
-                        <span className="text-[#e8e6e1]">{item.task}</span>
-                      </div>
-                      <span className="text-[#a8a6a1]" style={{ fontSize: '0.875rem' }}>{item.time}</span>
+                  {courses.length > 0 || assignments.filter(a => !a.submission).length > 0 ? (
+                    <>
+                      {courses.slice(0, 2).map((course, idx) => (
+                        <div key={`c-${idx}`} className="flex items-center justify-between p-4 bg-[#1a1a1a] rounded-xl">
+                          <div className="flex items-center gap-3">
+                            <div className="w-2 h-2 rounded-full bg-[#FFD600] animate-pulse" />
+                            <span className="text-[#e8e6e1]">{course.title} Class</span>
+                          </div>
+                          <span className="text-[#a8a6a1]" style={{ fontSize: '0.875rem' }}>{course.schedule?.startTime || 'Today'}</span>
+                        </div>
+                      ))}
+                      {assignments.filter(a => !a.submission).slice(0, 2).map((assignment, idx) => (
+                        <div key={`a-${idx}`} className="flex items-center justify-between p-4 bg-[#1a1a1a] rounded-xl">
+                          <div className="flex items-center gap-3">
+                            <div className="w-2 h-2 rounded-full bg-red-500" />
+                            <span className="text-[#e8e6e1]">{assignment.title} Due</span>
+                          </div>
+                          <span className="text-[#a8a6a1]" style={{ fontSize: '0.875rem' }}>{new Date(assignment.dueDate).toLocaleDateString()}</span>
+                        </div>
+                      ))}
+                    </>
+                  ) : (
+                    <div className="text-center py-8 text-[#a8a6a1]">
+                      No tasks for today. Enjoy your free time!
                     </div>
-                  ))}
+                  )}
                 </div>
               </ChartCard>
             </motion.div>
@@ -810,9 +829,22 @@ export function StudentDashboard({ onLogout, onEnterClassroom, onGoToClasses }: 
                       
                       <div className="grid grid-cols-7 gap-2">
                         {Array.from({ length: 35 }, (_, i) => {
-                          const day = i - 3; // Start from Monday
-                          const isToday = day === 26; // December 26
-                          const hasEvents = [10, 12, 14, 16, 18, 20, 26].includes(day);
+                          const today = new Date();
+                          const currentMonth = today.getMonth();
+                          const currentYear = today.getFullYear();
+                          const firstDayOfMonth = new Date(currentYear, currentMonth, 1).getDay();
+                          // Adjust firstDayOfMonth to start from Monday (0: Sun, 1: Mon...) -> (0: Mon, 6: Sun)
+                          const startOffset = firstDayOfMonth === 0 ? 6 : firstDayOfMonth - 1;
+                          
+                          const dayNumber = i - startOffset + 1;
+                          const dateObj = new Date(currentYear, currentMonth, dayNumber);
+                          const isToday = dateObj.toDateString() === today.toDateString();
+                          
+                          const dayAssignments = assignments.filter(a => 
+                            new Date(a.dueDate).toDateString() === dateObj.toDateString()
+                          );
+                          
+                          const hasEvents = dayAssignments.length > 0;
                           
                           return (
                             <div
@@ -824,12 +856,13 @@ export function StudentDashboard({ onLogout, onEnterClassroom, onGoToClasses }: 
                               }`}
                             >
                               <div className={`text-sm mb-1 ${isToday ? 'text-[#FFD600] font-semibold' : 'text-[#a8a6a1]'}`}>
-                                {day > 0 && day <= 31 ? day : ''}
+                                {dayNumber > 0 && dayNumber <= new Date(currentYear, currentMonth + 1, 0).getDate() ? dayNumber : ''}
                               </div>
                               {hasEvents && (
                                 <div className="space-y-1">
-                                  <div className="w-full h-1 bg-[#FFD600] rounded-full"></div>
-                                  {day === 26 && <div className="w-3/4 h-1 bg-[#FFD600]/60 rounded-full"></div>}
+                                  {dayAssignments.map((a, idx) => (
+                                    <div key={idx} className="w-full h-1 bg-red-500 rounded-full" title={a.title}></div>
+                                  ))}
                                 </div>
                               )}
                             </div>
@@ -846,59 +879,60 @@ export function StudentDashboard({ onLogout, onEnterClassroom, onGoToClasses }: 
                     <div className="p-6">
                       <h4 className="text-[#e8e6e1] font-semibold mb-4">Today's Schedule</h4>
                       <div className="space-y-3">
-                        {[
-                          { time: '9:00 AM', subject: 'Mathematics', type: 'class', duration: '90 min' },
-                          { time: '11:00 AM', subject: 'Physics Lab', type: 'lab', duration: '120 min' },
-                          { time: '2:00 PM', subject: 'Study Session', type: 'study', duration: '60 min' },
-                          { time: '4:00 PM', subject: 'Computer Science', type: 'class', duration: '90 min' },
-                          { time: '6:00 PM', subject: 'Assignment Due', type: 'deadline', duration: 'Math Quiz' }
-                        ].map((item, index) => (
-                          <div key={index} className="flex items-center gap-3 p-3 bg-[#1a1a1a] rounded-lg">
-                            <div className={`w-3 h-3 rounded-full ${
-                              item.type === 'class' ? 'bg-[#FFD600]' :
-                              item.type === 'lab' ? 'bg-blue-500' :
-                              item.type === 'study' ? 'bg-green-500' : 'bg-red-500'
-                            }`}></div>
-                            <div className="flex-1">
-                              <div className="flex items-center justify-between">
-                                <span className="text-[#e8e6e1] text-sm font-medium">{item.subject}</span>
-                                <span className="text-[#a8a6a1] text-xs">{item.time}</span>
+                        {courses.length > 0 ? (
+                          courses.map((course, index) => (
+                            <div key={index} className="flex items-center gap-3 p-3 bg-[#1a1a1a] rounded-lg">
+                              <div className="w-3 h-3 rounded-full bg-[#FFD600]"></div>
+                              <div className="flex-1">
+                                <div className="flex items-center justify-between">
+                                  <span className="text-[#e8e6e1] text-sm font-medium">{course.title}</span>
+                                  <span className="text-[#a8a6a1] text-xs">{course.schedule?.startTime || 'TBD'}</span>
+                                </div>
+                                <span className="text-[#a8a6a1] text-xs">{course.schedule?.duration ? `${course.schedule.duration} min` : 'N/A'}</span>
                               </div>
-                              <span className="text-[#a8a6a1] text-xs">{item.duration}</span>
                             </div>
-                          </div>
-                        ))}
+                          ))
+                        ) : (
+                          <p className="text-[#a8a6a1] text-sm italic">No classes scheduled for today.</p>
+                        )}
                       </div>
                     </div>
                   </GlassCard>
                   
                   <GlassCard>
                     <div className="p-6">
-                      <h4 className="text-[#e8e6e1] font-semibold mb-4">Upcoming Events</h4>
+                      <h4 className="text-[#e8e6e1] font-semibold mb-4">Upcoming Deadlines</h4>
                       <div className="space-y-3">
-                        {[
-                          { title: 'Mid-term Exams', date: 'Jan 15-20, 2026', type: 'exam' },
-                          { title: 'Project Presentation', date: 'Jan 10, 2026', type: 'presentation' },
-                          { title: 'Career Fair', date: 'Feb 5, 2026', type: 'event' },
-                          { title: 'Spring Break', date: 'Mar 10-14, 2026', type: 'holiday' }
-                        ].map((event, index) => (
-                          <div key={index} className="flex items-center gap-3 p-3 bg-[#1a1a1a] rounded-lg">
-                            <div className={`w-2 h-2 rounded-full ${
-                              event.type === 'exam' ? 'bg-red-500' :
-                              event.type === 'presentation' ? 'bg-[#FFD600]' :
-                              event.type === 'event' ? 'bg-blue-500' : 'bg-green-500'
-                            }`}></div>
-                            <div>
-                              <div className="text-[#e8e6e1] text-sm font-medium">{event.title}</div>
-                              <div className="text-[#a8a6a1] text-xs">{event.date}</div>
+                        {assignments.filter(a => !a.submission).length > 0 ? (
+                          assignments.filter(a => !a.submission).slice(0, 5).map((assignment, index) => (
+                            <div key={index} className="flex items-center gap-3 p-3 bg-[#1a1a1a] rounded-lg">
+                              <div className="w-2 h-2 rounded-full bg-red-500"></div>
+                              <div>
+                                <div className="text-[#e8e6e1] text-sm font-medium">{assignment.title}</div>
+                                <div className="text-[#a8a6a1] text-xs">{new Date(assignment.dueDate).toLocaleDateString()}</div>
+                              </div>
                             </div>
-                          </div>
-                        ))}
+                          ))
+                        ) : (
+                          <p className="text-[#a8a6a1] text-sm italic">No upcoming deadlines.</p>
+                        )}
                       </div>
                     </div>
                   </GlassCard>
                 </div>
               </div>
+            </motion.div>
+          )}
+
+          {activeTab === 'ai-schedule' && (
+            <motion.div
+              key="ai-schedule"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.4 }}
+            >
+              <AiSchedule studentId={profile?._id || profile?.id} />
             </motion.div>
           )}
 
